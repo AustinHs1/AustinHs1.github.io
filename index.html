@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triangle Renderer (Side-Angle-Side) with Sliders</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        canvas { border: 1px solid #ddd; }
+        .slider-container { display: flex; align-items: center; margin-bottom: 10px; }
+        .slider-container label { width: 100px; }
+        .slider-container input[type="range"] { flex-grow: 1; }
+        .slider-container span { width: 50px; text-align: right; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Triangle Renderer (Side-Angle-Side) with Sliders</h1>
+    <div class="slider-container">
+        <label for="side1">Side 1:</label>
+        <input type="range" id="side1" min="0.1" max="10" step="0.1" value="3">
+        <span id="side1Value">3</span>
+    </div>
+    <div class="slider-container">
+        <label for="side2">Side 2:</label>
+        <input type="range" id="side2" min="0.1" max="10" step="0.1" value="4">
+        <span id="side2Value">4</span>
+    </div>
+    <div class="slider-container">
+        <label for="angle1">Angle 1 (°):</label>
+        <input type="range" id="angle1" min="1" max="179" step="1" value="30">
+        <span id="angle1Value">30</span>
+    </div>
+    <canvas id="triangleCanvas" width="400" height="400"></canvas>
+
+    <script>
+        function updateSliderValue(sliderId) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(sliderId + 'Value');
+            valueSpan.textContent = parseFloat(slider.value).toFixed(1);
+        }
+
+        function drawTriangle() {
+            const canvas = document.getElementById('triangleCanvas');
+            const ctx = canvas.getContext('2d');
+            const side1 = parseFloat(document.getElementById('side1').value);
+            const side2 = parseFloat(document.getElementById('side2').value);
+            const angle1Deg = parseFloat(document.getElementById('angle1').value);
+            const angle1 = angle1Deg * Math.PI / 180;  // Convert to radians
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate the third side using law of cosines
+            const side3 = Math.sqrt(side1*side1 + side2*side2 - 2*side1*side2*Math.cos(angle1));
+
+            // Calculate the other two angles
+            const angle2 = Math.acos((side1*side1 + side3*side3 - side2*side2) / (2*side1*side3));
+            const angle3 = Math.PI - angle1 - angle2;
+
+            // Calculate coordinates
+            const scale = 150 / Math.max(side1, side2, side3);
+            const x1 = 200, y1 = 350;
+            const x2 = x1 + side1 * scale, y2 = y1;
+            const x3 = x1 + side2 * scale * Math.cos(angle1), y3 = y1 - side2 * scale * Math.sin(angle1);
+
+            // Draw triangle
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x3, y3);
+            ctx.closePath();
+            ctx.stroke();
+
+            // Label sides
+            ctx.font = "14px Arial";
+            ctx.fillText(side1.toFixed(1), (x1 + x2) / 2, y1 + 20);
+            ctx.fillText(side2.toFixed(1), (x1 + x3) / 2 - 20, (y1 + y3) / 2);
+            ctx.fillText(side3.toFixed(1), (x2 + x3) / 2, (y2 + y3) / 2 + 20);
+
+            // Label angles
+            ctx.fillText(angle1Deg.toFixed(1) + "°", x1 - 40, y1);
+            ctx.fillText((angle2 * 180 / Math.PI).toFixed(1) + "°", x2 + 10, y2);
+            ctx.fillText((angle3 * 180 / Math.PI).toFixed(1) + "°", x3, y3 - 10);
+        }
+
+        // Set up event listeners
+        ['side1', 'side2', 'angle1'].forEach(id => {
+            const slider = document.getElementById(id);
+            slider.addEventListener('input', () => {
+                updateSliderValue(id);
+                drawTriangle();
+            });
+        });
+
+        // Initial draw
+        drawTriangle();
+    </script>
+</body>
+</html>
